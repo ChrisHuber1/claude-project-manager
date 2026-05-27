@@ -1,0 +1,253 @@
+﻿{
+  "version": "1.0",
+  "updated": "2026-05-01",
+  "github_user": "YOUR_GITHUB_USER",
+  "linux-host": {
+    "host": "YOUR_HOST_IP",
+    "user": "YOUR_SSH_USER",
+    "backup_path": "~/backups",
+    "recovery_path": "~/recovery",
+    "audit_path": "~/audit"
+  },
+  "local": {
+    "state_path": "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\state",
+    "session_log_path": "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\state\\sessions",
+    "recovery_path": "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\recovery"
+  },
+  "backup": {
+    "safety_branch_prefix": "safety/pre-session-",
+    "stash_prefix": "pre-session-stash-",
+    "cleanup_days": 30,
+    "require_github_push": true,
+    "require_private_repo": true,
+    "require_ops1_bare_backup": true
+  },
+  "forbidden_commands": {
+    "filesystem_destruction": {
+      "patterns": [
+        "rm -rf /",
+        "rm -rf ~",
+        "rm -rf ../",
+        "rm -rf ..",
+        "rmdir /s /q C:\\",
+        "Remove-Item -Recurse -Force [A-Z]:\\"
+      ],
+      "immutable": true
+    },
+    "git_history_destruction": {
+      "patterns": [
+        "git push --force origin main",
+        "git push --force origin master",
+        "git push -f origin main",
+        "git push -f origin master",
+        "git reset --hard.*main",
+        "git reset --hard.*master",
+        "git rebase -i.*main",
+        "git rebase -i.*master"
+      ],
+      "immutable": true
+    },
+    "database_destruction": {
+      "patterns": [
+        "DROP DATABASE",
+        "DROP TABLE",
+        "TRUNCATE TABLE"
+      ],
+      "immutable": false,
+      "requires_approval": true
+    },
+    "credential_files": {
+      "write_blocked_patterns": [
+        "~/.ssh/*",
+        "**/.env",
+        "**/.env.*",
+        "**/*credentials*",
+        "**/*secret*",
+        "**/*.pem",
+        "**/*.key",
+        "**/id_rsa*",
+        "**/id_ed25519*",
+        "**/authorized_keys"
+      ],
+      "immutable": true
+    },
+    "system_commands": {
+      "patterns": [
+        "shutdown",
+        "reboot",
+        "halt",
+        "poweroff",
+        "init 0",
+        "init 6",
+        "chmod 777",
+        "chown"
+      ],
+      "immutable": true
+    },
+    "network_infrastructure": {
+      "patterns": [
+        "iptables",
+        "ip6tables",
+        "nft ",
+        "nftables",
+        "pfctl",
+        "ip link set .* down",
+        "ifconfig .* down",
+        "netplan apply",
+        "wg-quick down",
+        "ip route del",
+        "route del",
+        "route delete"
+      ],
+      "file_write_blocked": [
+        "/etc/resolv.conf",
+        "/etc/network/*",
+        "/etc/netplan/*",
+        "/etc/wireguard/*",
+        "/etc/pihole/*",
+        "/etc/dnsmasq*",
+        "/etc/dhcp/*",
+        "/etc/dhcpcd*"
+      ],
+      "api_blocked_patterns": [
+        "*/api/firewall/*",
+        "*/api/routes/*",
+        "*/api/interfaces/*",
+        "*/api/dhcpv4/*",
+        "*/api/unbound/*"
+      ],
+      "immutable": true
+    },
+    "data_exfiltration": {
+      "patterns": [
+        "curl.*-X POST(?!.*(github\\.com|api\\.github\\.com))",
+        "curl.*--data(?!.*(github\\.com|api\\.github\\.com))",
+        "wget.*--post",
+        "curl.*-d .*@"
+      ],
+      "immutable": true
+    },
+    "privilege_escalation": {
+      "patterns": [
+        "sudo rm -rf",
+        "sudo chmod 777",
+        "sudo chown"
+      ],
+      "immutable": true
+    }
+  },
+  "allowed_operations": {
+    "file_deletion": {
+      "scope": "within_project_root_only",
+      "single_files_only": true
+    },
+    "git_force_push": {
+      "scope": "feature_branches_only",
+      "blocked_branches": ["main", "master", "production", "release/*"]
+    },
+    "package_install": {
+      "allowed_registries": ["pypi.org", "registry.npmjs.org", "apt"],
+      "log_required": true
+    },
+    "service_restart": {
+      "scope": "project_specific_only",
+      "log_required": true
+    },
+    "git_push": {
+      "allowed_branch_prefixes": ["pm/", "safety/", "dev/", "feature/", "fix/", "chore/"],
+      "protected_branches": ["main", "master"]
+    },
+    "http_requests": {
+      "external_get": true,
+      "external_post": false,
+      "github_api": true,
+      "range_hosts": true
+    },
+    "ssh": {
+      "range_hosts_only": true
+    }
+  },
+  "scope_containment": {
+    "write_allowed_outside_project": [
+      "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\state\\",
+      "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\guardrails\\",
+      "C:\\Users\\YOUR_USER\\.claude\\",
+      "C:\\Users\\YOUR_USER\\obsidian-vault\\",
+      "~/backups/",
+      "~/recovery/",
+      "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\recovery\\"
+    ],
+    "read_only_within_project": [
+      ".env",
+      ".env.*",
+      "LICENSE",
+      ".git/"
+    ],
+    "cross_project_requires_checkpoint": true
+  },
+  "limits": {
+    "max_file_deletions_per_session": 10,
+    "max_lines_changed_single_file": 500,
+    "max_files_modified_per_session": 50,
+    "max_consecutive_failures": 2,
+    "max_autonomous_minutes": 120,
+    "connectivity_loss_timeout_seconds": 60,
+    "alert_cooldown_seconds": 60
+  },
+  "preflight": {
+    "require_git_repo": true,
+    "require_clean_state": true,
+    "auto_stash_on_dirty": true,
+    "require_github_remote": true,
+    "require_safety_checkpoint": true,
+    "require_connectivity_check": true,
+    "require_recovery_scripts": true,
+    "require_min_disk_gb": 1,
+    "require_writable_audit_log": true,
+    "connectivity_targets": {
+      "gateway": "auto_detect",
+      "external": "8.8.8.8"
+    }
+  },
+  "audit": {
+    "format": "jsonl",
+    "retention_days": 90,
+    "mirror_to_ops1": true,
+    "log_all_commands": true,
+    "log_file_changes": true,
+    "log_git_operations": true,
+    "log_blocked_operations": true,
+    "log_package_installs": true,
+    "log_ssh_connections": true,
+    "session_summary_on_exit": true
+  },
+  "alerts": {
+    "engine": "pyttsx3",
+    "phrase": "Master, claude needs you",
+    "cooldown_seconds": 60,
+    "on_time_limit": "verbal_continue_readonly",
+    "on_kill_switch": "verbal_halt"
+  },
+  "overrides": {
+    "allow_tighten": true,
+    "allow_loosen_with_reason": true,
+    "immutable_rules": [
+      "forbidden_commands.network_infrastructure",
+      "forbidden_commands.credential_files",
+      "forbidden_commands.data_exfiltration",
+      "backup.require_github_push",
+      "backup.require_safety_checkpoint",
+      "audit.log_all_commands",
+      "audit.log_blocked_operations",
+      "preflight.require_recovery_scripts"
+    ]
+  },
+  "recovery": {
+    "auto_detect_connectivity_loss": true,
+    "check_before_network_adjacent_commands": true,
+    "check_after_network_adjacent_commands": true,
+    "auto_run_recovery_on_failure": true,
+    "ops1_script": "~/recovery/restore-network.sh",
+    "local_script": "C:\\Users\\YOUR_USER\\ClaudeProjectManager\\recovery\\restore-network.ps1"
+  }
+}

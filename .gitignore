@@ -1,0 +1,32 @@
+﻿# Runtime state
+state/
+*.log
+
+# Environment / secrets
+.env
+*.env
+bootstrap.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code
+.claude/
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Temp files
+temp_*
+*.png
+SCRATCHPAD.md

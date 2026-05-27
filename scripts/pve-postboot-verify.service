@@ -1,0 +1,13 @@
+[Unit]
+Description=Verify all onboot VMs/CTs are running after boot
+After=pveproxy.service pve-guests.service
+Wants=pve-guests.service
+
+[Service]
+Type=oneshot
+ExecStartPre=/bin/sleep 300
+ExecStart=/usr/local/bin/pve-postboot-verify.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
